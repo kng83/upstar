@@ -17,12 +17,16 @@ const Artist = require('../models/artist');
 module.exports = (criteria, sortProperty, offset = 0, limit = 20) => {
 
 
-    const query = Artist.find(buildQuery(criteria))
+    const query = Artist
+        .find(buildQuery(criteria))
         .sort({[sortProperty]:1}) //to jest es6 interpolated keys dzieki temu latwo mozna przekazac wlasciwosci obiektu
         .skip(offset)
         .limit(limit);
 
-    return Promise.all([query,Artist.count()]) //count jest zwracana z obiektu przez moongoose
+    //count zeby poprawnie dzialalo musimy zrobic kolejne zapytanie do bazy bo sa limity i offsety
+    return Promise.all([query,
+        Artist.find(buildQuery(criteria)).count()
+    ]) //count jest zwracana z obiektu przez moongoose
         .then((results)=>{
             return{
                 all:results[0],
